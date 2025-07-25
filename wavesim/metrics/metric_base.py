@@ -1,4 +1,5 @@
-from typing import Dict, Union
+from typing import Dict, Union, Tuple
+import xarray as xr
 import numpy as np
 import torch
 
@@ -33,9 +34,30 @@ class Metric():
         if map1.shape != map2.shape:
             raise ValueError(f"Input maps must have the same shape. Got {map1.shape} and {map2.shape}.")
 
-        self.map1 = map1
-        self.map2 = map2
-        self.params = params #if params is not None else {}
+        self.map1, self.map2 = self._process_input(map1, map2)
+        assert self.map1.shape == self.map2.shape
+        
+        self.params = params if params is not None else {}
+    
+    def _process_input(self,
+                   map1: Union[np.ndarray, xr.DataArray, torch.Tensor],
+                   map2: Union[np.ndarray, xr.DataArray, torch.Tensor]
+                  ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Converts inputs to torch.Tensor with shape (B, C, H, W)"""
+    
+        def to_tensor(x):
+            if isinstance(x, xr.DataArray):
+                x = torch.tensor(x.values, dtype=torch.float32)
+            if isinstance(x, np.ndarray):
+                x = torch.tensor(x, dtype=torch.float32)
+            if not isinstance(x, torch.Tensor):
+                raise ValueError(f"Unsupported input type: {type(x)}")
+            
+            while x.ndim < 4:
+                x = x.unsqueeze(0)
+            return x
+
+        return to_tensor(map1), to_tensor(map2)
 
     def compute(self):
         raise NotImplementedError("This method should be overridden in subclasses.")
