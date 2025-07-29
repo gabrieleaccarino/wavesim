@@ -3,8 +3,10 @@ import xarray as xr
 import numpy as np
 import torch
 
-from wavesim.wavelet_base import Wavelet2DBaseTorch
-from wavesim.metrics import Metric
+#from wavesim.wavelet_base import Wavelet2DBaseTorch
+#from wavesim.metrics import Metric
+from wavelet_base import Wavelet2DBaseTorch
+from metrics import Metric
 
 class WaveSim(Wavelet2DBaseTorch, Metric):
     """
@@ -129,9 +131,9 @@ class WaveSim(Wavelet2DBaseTorch, Metric):
         cosine_sim = 0.5 * (cosine_sim + 1.0)  # Map [-1,1] to [0,1]                # (B, C, S)
         
         # Magnitude variation penalty
-        #mean_gap = (c1_sorted - c2_sorted).abs().mean(dim=2)  # [0, 2]
-        #penalty = 1.0 - mean_gap / (c1_sorted.abs().mean(dim=2) + c2_sorted.abs().mean(dim=2) + self.eps)
-        return cosine_sim #* penalty                                                 # (B, C, S)
+        mean_gap = (c1_sorted - c2_sorted).abs().mean(dim=2)  # [0, 2]
+        penalty = 1.0 - mean_gap / (c1_sorted.abs().mean(dim=2) + c2_sorted.abs().mean(dim=2) + self.eps)
+        return cosine_sim * penalty                                                 # (B, C, S)
     
     def compute(self) -> float:
         """

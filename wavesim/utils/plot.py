@@ -30,13 +30,15 @@ SHIFTED_BRBG_COLORS = np.array([[0.95724721, 0.95993849, 0.95955402, 1.        ]
 def custom_format(x, pos):
     return f"{int(x)}" if x == int(x) else f"{x:.1f}"
 
-def plot_perturbation(reference, perturbed, reference_coords, perturbed_coords, reference_label, perturbed_label, cbar_label):
+def plot_perturbation(reference, perturbed, reference_coords, perturbed_coords, reference_label, perturbed_label, cbar_label, cbar_lim = None):
     gridline_settings = {'draw_labels': True, 'linewidth': 0.0, 
                         'color': 'gray', 'alpha': 0.5, 'linestyle': '--'}
 
     color_levels = [0.0, 0.1, 0.5, 1, 2, 5, 10, 15, 20]
+    color_levels_bias = [-20, -15, -10, -5, -2, -1, -0.5, -0.1, 0.0, 0.1, 0.5, 1, 2, 5, 10, 15, 20]
     cmap = ListedColormap(SHIFTED_BRBG_COLORS)
     norm = BoundaryNorm(list(color_levels), ncolors=len(color_levels))
+    norm_bias = BoundaryNorm(list(color_levels_bias), ncolors=len(color_levels_bias))
     formatter = FuncFormatter(custom_format)
 
     # figure
@@ -60,7 +62,8 @@ def plot_perturbation(reference, perturbed, reference_coords, perturbed_coords, 
     cbar.ax.tick_params(labelsize=10)
 
     # Central Panel : perturbed map (plotted over the same reference grid)
-    lon, lat = reference_coords
+    lon, lat = perturbed_coords
+    domain_extent = [lon.min(), lon.max(), lat.min(), lat.max()]
     lon_grid, lat_grid = np.meshgrid(lon, lat)
     ax1.set_extent(domain_extent, crs=ccrs.PlateCarree())  # Use reference extent
     ax1.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.5, zorder=2)
@@ -76,11 +79,16 @@ def plot_perturbation(reference, perturbed, reference_coords, perturbed_coords, 
     cbar.ax.tick_params(labelsize=10)
 
     # Right Panel : bias map (reference - perturbed)
-    ax2.set_extent(domain_extent, crs=ccrs.PlateCarree())
-    ax2.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.5, zorder=2)
+    #ax2.set_extent(domain_extent, crs=ccrs.PlateCarree())
+    #ax2.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.5, zorder=2)
     ax2.set_title(f'Reference - Perturbed')
     bias = reference - perturbed
-    norm = mcolors.TwoSlopeNorm(vmin=bias.min(), vcenter=0.0, vmax=bias.max())
-    bias = ax2.pcolormesh(lon_grid, lat_grid, bias, cmap='BrBG', norm=norm, shading='auto', transform=ccrs.PlateCarree())
-    cbar = plt.colorbar(bias, ax=ax2, fraction=0.04, pad=0.08, orientation='horizontal', format=ScalarFormatter())
-    cbar.set_label(f'{cbar_label}', fontsize=10)
+    #norm = mcolors.TwoSlopeNorm(vmin=bias.min(), vcenter=0.0, vmax=bias.max())
+    cbar_lim = cbar_lim if cbar_lim is not None else 20
+    norm = mcolors.TwoSlopeNorm(vmin=-cbar_lim, vcenter=0.0, vmax=cbar_lim)
+    bias_map = ax2.pcolormesh(lon_grid, lat_grid, bias, cmap='BrBG', norm=norm, shading='auto', transform=ccrs.PlateCarree())
+    #bias_map = ax2.contourf(lon_grid, lat_grid, bias, levels=color_levels_bias,
+    #                              cmap='BrBG', norm=norm_bias, extend='max', transform=ccrs.PlateCarree())
+    cbar = plt.colorbar(bias_map, ax=ax2, fraction=0.04, pad=0.08, orientation='horizontal', format=ScalarFormatter())
+    cbar.set_label(f'Precipitation difference (mm)', fontsize=10)
+    print(f'Bias min: {bias.min()}, max: {bias.max()}')
