@@ -37,9 +37,20 @@ class WaveSim(Wavelet2DBaseTorch, Metric):
         self.alpha = self.components_weight['alpha']    # (magnitude component weight)
         self.beta = self.components_weight['beta']      # (displacement component weight)
         self.gamma = self.components_weight['gamma']    # (structural component weight)
-        scales_weight = params['scales_weight']
-        self.scales_weight_tensor = torch.Tensor(scales_weight).view(self.B, self.C, self.levels + 1) if isinstance(scales_weight, (list, np.ndarray)) else scales_weight
+        self.use_approx = params.get('use_approx', False)
+        
+        scales_weight = torch.Tensor(params['scales_weight']) if isinstance(params['scales_weight'], (list, np.ndarray)) else params['scales_weight']
+        expected_len = self.levels + 1 if self.use_approx else self.levels
+        
+        #self.scales_weight_tensor = torch.Tensor(scales_weight).view(self.B, self.C, self.levels + 1) if isinstance(scales_weight, (list, np.ndarray)) else scales_weight
 
+        if scales_weight.shape[-1] != expected_len:
+            raise ValueError(
+                f"scales_weight tensor last dim mismatch: got {scales_weight.shape[-1]}, "
+                f"expected {expected_len} (use_approx={self.use_approx})."
+            )
+        self.scales_weight_tensor = scales_weight.view(1, 1, expected_len)  # Shape (1, 1, L+1) or (1, 1, L)
+        
         # Initialize Wavelet2DBaseTorch with the maps
         # compute DWT for both maps according to the wavelet, mode, and levels
         self.map1_dwt = Wavelet2DBaseTorch(data=self.map1, wavelet=self.wavelet, mode=self.mode, levels=self.levels)
@@ -53,7 +64,7 @@ class WaveSim(Wavelet2DBaseTorch, Metric):
         self.m2_mean_energy = torch.mean(m2_energy, dim=(2, 3))                     # (B, C, L+1)
         sum_energy = self.m1_mean_energy + self.m2_mean_energy                      # (B, C, L+1)   
         magnitude_difference = torch.abs(self.m1_mean_energy - self.m2_mean_energy) # (B, C, L+1)
-        relative_difference = magnitude_difference / (sum_energy + self.eps)           # (B, C, L+1)
+        relative_difference = magnitude_difference / (sum_energy + self.eps)        # (B, C, L+1)
         return 1 - relative_difference                                              # (B, C, L+1)
     
     def _displacement_component(self, m1_energy: torch.Tensor, m2_energy: torch.Tensor) -> torch.Tensor: 
@@ -141,13 +152,17 @@ class WaveSim(Wavelet2DBaseTorch, Metric):
         self.m1_coeffs = self.map1_dwt.scale_inversion(operation=self.operation)    # (B, C, H, W, L+1)
         self.m2_coeffs = self.map2_dwt.scale_inversion(operation=self.operation)    # (B, C, H, W, L+1)
         
-        m1_energy = self.m1_coeffs ** 2                                             # (B, C, H, W, L+1)
-        m2_energy = self.m2_coeffs ** 2                                             # (B, C, H, W, L+1)       
+        if self.use_approx == False:
+            self.m1_coeffs = self.m1_coeffs[:,:,:,:,:-1]
+            self.m2_coeffs = self.m2_coeffs[:,:,:,:,:-1]
+            
+        self.m1_energy = self.m1_coeffs ** 2                                        # (B, C, H, W, L+1)
+        self.m2_energy = self.m2_coeffs ** 2                                        # (B, C, H, W, L+1)       
         
-        self.magnitude_sim_score = self._magnitude_component(m1_energy, m2_energy)
+        self.magnitude_sim_score = self._magnitude_component(self.m1_energy, self.m2_energy)
         self.magnitude_sim_score_weighted = torch.pow(self.magnitude_sim_score, self.alpha)
        
-        self.displacement_sim_score = self._displacement_component(m1_energy, m2_energy)
+        self.displacement_sim_score = self._displacement_component(self.m1_energy, self.m2_energy)
         self.displacement_sim_score_weighted = torch.pow(self.displacement_sim_score, self.beta)
         
         self.structural_sim_score = self._structural_component(self.m1_coeffs, self.m2_coeffs)

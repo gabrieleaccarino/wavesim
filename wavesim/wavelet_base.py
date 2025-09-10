@@ -74,3 +74,35 @@ class Wavelet2DBaseTorch(object):
 
         rec_maps.append(rec_map_approx)
         return torch.stack(rec_maps, dim=-1)  # (B, C, H, W, L+1)
+    
+    def scale_inversion_ori(self):
+        """
+        Reconstructs each detail component at each scale independently.
+        Instead of inverse transforming each orientation separately and then summing/averaging, keep them as they are.
+        This approach is approximately the same as scale_inversion with operations applied later.
+        Returns list of reconstructed maps from each detail scale [finest -> coarsest] and approx.
+        """
+        approx, details = self.coeffs
+        rec_maps = []
+
+        # approximation
+        zeroed_details = [torch.zeros_like(detail) for detail in details]
+        rec_map_approx = self.inverse_wavelet((approx, zeroed_details)) # no details
+    
+        # details
+        # range across levels
+        for level in range(self.levels):
+            detail_coeff = details[level] # shape (B, C, 3, H_l, W_l)
+            # range across orientations
+            detail_mask = torch.zeros_like(detail_coeff)
+            for ori in range(3):
+                detail_mask[:, :, ori, :, :] = detail_coeff[:, :, ori, :, :]
+                
+            details_zeroed = [torch.zeros_like(d) for d in details]
+            details_zeroed[level] = detail_mask
+                
+            rec_map_ori = self.inverse_wavelet((torch.zeros_like(approx), details_zeroed))  # no approx
+            rec_maps.append(rec_map_ori)
+
+        rec_maps.append(rec_map_approx)
+        return torch.stack(rec_maps, dim=-1)  # (B, C, H, W, L+1)

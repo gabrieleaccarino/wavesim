@@ -1,2 +1,2 @@
 from .perturbations import noise_at_level, crop_centered_window
-from .plot import plot_perturbation
+from .plot import plot_perturbation, plot_wavelet_decomposition, multi_scale_wavelet_plot, PlotWaveletDecomposition, custom_format, SHIFTED_BRBG_COLORS
