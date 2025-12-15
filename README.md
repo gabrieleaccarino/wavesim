@@ -61,7 +61,7 @@ pip install jupyter zarr gcsfs scipy
 ```python
 import numpy as np
 import torch
-from wavesim import WaveSim
+from wavesim.wavesim import WaveSim
 
 # Prepare your data (shape: B, C, H, W)
 map1 = np.random.rand(1, 1, 256, 256)  # Reference field
