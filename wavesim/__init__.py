@@ -14,5 +14,6 @@
 #from wavesim.wavesim import WaveSim
 #from wavesim.wavelet_base import Wavelet2DBaseTorch
 
-from wavesim import WaveSim
-from wavelet_base import Wavelet2DBaseTorch
+#from metrics import Metric, DataStructuralSimilarityIndex, NormalizedRootMeanSquaredError
+from .wavelet_base import Wavelet2DBaseTorch
+from .wavesim import WaveSim

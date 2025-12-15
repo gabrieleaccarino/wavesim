@@ -2,7 +2,7 @@ import torch.nn.functional as F
 from typing import Dict, Tuple
 import torch
 
-from . import Metric
+from .metric_base import Metric
 
 def create_gaussian_kernel(kernel_size: int, sigma: float) -> torch.Tensor:
     """Creates a 2D Gaussian kernel."""

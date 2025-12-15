@@ -5,8 +5,8 @@ import torch
 
 #from wavesim.wavelet_base import Wavelet2DBaseTorch
 #from wavesim.metrics import Metric
-from wavelet_base import Wavelet2DBaseTorch
-from metrics import Metric
+from .wavelet_base import Wavelet2DBaseTorch
+from .metrics.metric_base import Metric
 
 class WaveSim(Wavelet2DBaseTorch, Metric):
     """

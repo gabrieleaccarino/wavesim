@@ -1,7 +1,7 @@
 from typing import Dict
 import torch
 
-from . import Metric
+from .metric_base import Metric
 
 class NormalizedRootMeanSquaredError(Metric):
     """
@@ -29,7 +29,10 @@ class NormalizedRootMeanSquaredError(Metric):
         super().__init__(map1, map2, params)
         
         self.eps = 1e-8
-        self.mode = params.get('mode', 'range')
+        self.p = params.get('p', 1)
+        
+        if not isinstance(self.p, int):
+            raise ValueError(f'Parameter p must be an integer. Got {type(self.p)}.')
 
     def compute(self) -> tuple[float, str]:
         """
@@ -40,24 +43,15 @@ class NormalizedRootMeanSquaredError(Metric):
             tuple (float, str)
                 The computed NRMSE value and the unit (if any).
         """
-        #rmse_max = np.sqrt(np.max((self.map1 - self.map2)**2)) if self.rmse_max is None else self.rmse_max
 
-        if self.mode == 'range':
-            smin = torch.nan_to_num(self.map1, nan=float('inf')).min()
-            smax = torch.nan_to_num(self.map1, nan=float('-inf')).max()
-            norm = smax - smin
-        elif self.mode == 'mean':
-            norm = torch.nanmean(self.map1)
-        elif self.mode == 'std' or self.mode == 'standard_deviation':
-            nan_mean = torch.nanmean(self.map1, keepdim=True)
-            squared_diff = torch.pow(self.map1 - nan_mean, 2)
-            nan_variance = torch.nanmean(squared_diff, keepdim=True)
-            norm = torch.sqrt(nan_variance)
+        if self.p != 0:
+            rand = torch.randperm(self.map1.nelement())
+            rand = self.map1.view(-1)[rand].view(self.map1.size())
+            R = torch.sqrt(torch.mean((self.map1 - self.map2)**2))
+            R_rand = torch.sqrt(torch.mean((self.map1 - rand)**2))
+            nrmse = (R / (R_rand + self.eps)) ** self.p
+            sim_nrmse = torch.exp(-nrmse)
         else:
-            ValueError(f'Mode not recognized. Use "range", "mean", or "std". Got {self.mode}.')
+            ValueError(f'Parameter p must be different from 0. Got {self.p}.')
         
-        mse = torch.mean((self.map1 - self.map2)**2)
-        rmse = torch.sqrt(mse)
-        nrmse = rmse/(norm + self.eps)
-        
-        return 1.0 - nrmse.item()
+        return sim_nrmse.item()

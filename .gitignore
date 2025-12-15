@@ -3,3 +3,7 @@ __pycache__
 tests
 scripts
 .trash
+.DS_Store
+.vscode
+*.csv
+*.code-workspace
