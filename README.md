@@ -27,7 +27,7 @@ The metric is particularly effective at detecting differences that are perceptua
 
 ### Prerequisites
 
-- Python 3.7+
+- Python 3.8+
 - PyTorch
 - NumPy
 - xarray
@@ -61,6 +61,10 @@ pip install jupyter zarr gcsfs scipy
 ```python
 import numpy as np
 import torch
+# Ensure the wavesim directory is in your Python path
+# You can either: 
+# 1. Add wavesim parent directory to sys.path
+# 2. Work from the repository root directory
 from wavesim.wavesim import WaveSim
 
 # Prepare your data (shape: B, C, H, W)
