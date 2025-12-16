@@ -1,3 +1,4 @@
+.gitignore
 data
 __pycache__
 tests
