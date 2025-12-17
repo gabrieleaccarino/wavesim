@@ -1,5 +1,9 @@
 # WaveSim: A Wavelet-based Multi-scale Similarity Metric for Weather and Climate Fields
-*Gabriele Accarino*, *Viviana Acquaviva*, *Sara Shamekh*, *Duncan Watson-Parris*, *David Lawrence*
+
+[![arXiv](https://img.shields.io/badge/arXiv-2512.14656-b31b1b.svg)](https://arxiv.org/abs/2512.14656) $\quad$ ![MIT License](https://img.shields.io/badge/license-MIT-green) $\quad$ ![Python](https://img.shields.io/badge/python-3.12.2%2B-blue) $\quad$ ![GitHub stars](https://img.shields.io/github/stars/gabrieleaccarino/wavesim?style=social) $\quad$ ![GitHub forks](https://img.shields.io/github/forks/gabrieleaccarino/wavesim?style=social) $\quad$ ![GitHub watchers](https://img.shields.io/github/watchers/gabrieleaccarino/wavesim?style=social)
+
+
+**Gabriele Accarino**, **Viviana Acquaviva**, **Sara Shamekh**, **Duncan Watson-Parris**, **David Lawrence**
 
 WaveSim is a multi-scale similarity metric for the evaluation of spatial fields in weather and climate applications. WaveSim exploits wavelet transforms to decompose input fields into scale-specific wavelet coefficients. The metric is built by combining three components of similarity which are derived from these coefficients and capture orthogonal information. Each component yields a scale-specific similarity score ranging from 0 (no similarity) to 1 (perfect similarity), which are then multiplied across scales to produce an overall similarity measure. WaveSim comes with component and scale weights to allow users modify the behavior of the metric according to specific needs and case studies. Moreover, the selection of the mother wavelet to use, as well as the number of scales can be tailored according to the type of fields being compared. Overall, it provides a robust framework for comparing spatial patterns across multiple scales, particularly useful for climate data, weather forecasts, and Earth system model evaluation.
 
@@ -11,18 +15,15 @@ WaveSim is a multi-scale similarity metric for the evaluation of spatial fields 
 > [NOTE]
 >
 > - I’m actively improving this page and adding useful information to help you get comfortable using WaveSim. Stay tuned for updates 🙂
-> - The pre-print is coming soon!
 
-If you find our work useful, please consider to ⭐ star this repository 
-
-<!--and 📝 cite our paper: -->
+If you find our work useful, please consider to ⭐ star this repository and cite our [paper](https://arxiv.org/pdf/2512.14656) 📝.
 
 ## Overview 
 WaveSim decomposes spatial fields using Discrete Wavelet Transforms (DWT) and evaluates similarity through three orthogonal components:
 
-- Magnitude ($\mathcal{M}$), which quantifies similarities in the energy distribution of the coefficients, i.e., the intensity of the field; 
-- Displacement ($\mathcal{D}$), which captures spatial shift by comparing the centers of mass of normalized energy distributions;
-- Structure ($\mathcal{S}$), which assesses pattern organization independent of location and amplitude.
+- **Magnitude** ($\mathcal{M}$), which quantifies similarities in the energy distribution of the coefficients, i.e., the intensity of the field; 
+- **Displacement** ($\mathcal{D}$), which captures spatial shift by comparing the centers of mass of normalized energy distributions;
+- **Structure** ($\mathcal{S}$), which assesses pattern organization independent of location and amplitude.
 
 The overall WaveSim score combines these three components and aggregates across scales with tunable weights:
 
@@ -160,4 +161,14 @@ We acknowledge funding from NSF through the Learning the Earth with Artificial i
 
 ## Citation
 
-TBA
+```
+@misc{accarino2025wavesim,
+      title={WaveSim: A Wavelet-based Multi-scale Similarity Metric for Weather and Climate Fields}, 
+      author={Gabriele Accarino and Viviana Acquaviva and Sara Shamekh and Duncan Watson-Parris and David Lawrence},
+      year={2025},
+      eprint={2512.14656},
+      archivePrefix={arXiv},
+      primaryClass={physics.ao-ph},
+      url={https://arxiv.org/abs/2512.14656}, 
+}
+```
