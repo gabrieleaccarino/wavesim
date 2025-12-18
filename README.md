@@ -87,7 +87,7 @@ params = {
 wavesim = WaveSim(map1, map2, params)
 wavesim_score = wavesim.compute()
 
-print(f"WaveSim Score: {similarity_score:.4f}")
+print(f"WaveSim Score: {wavesim_score:.4f}")
 
 # Access individual components
 print(f"Magnitude       : {wavesim.magnitude_sim_score.numpy().ravel()}")
